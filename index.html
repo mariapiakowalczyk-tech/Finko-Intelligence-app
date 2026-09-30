@@ -24,17 +24,48 @@
       margin-bottom: 40px;
     }
 
-    .propiedad {
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
       margin-top: 20px;
+    }
+
+    .publicacion {
       padding: 20px;
       border: 1px solid #dedad2;
       border-radius: 10px;
-      max-width: 500px;
       background: white;
     }
 
-    .estado {
-      color: #555;
+    .publicacion h3 {
+      margin: 0 0 6px 0;
+      font-size: 18px;
+    }
+
+    .fecha {
+      color: #888;
+      font-size: 13px;
+      margin: 0 0 12px 0;
+    }
+
+    .metricas {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 0;
+    }
+
+    .metrica {
+      background: #f1efe9;
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    .metrica strong {
+      color: #1c1f1a;
     }
 
     .error {
@@ -55,53 +86,74 @@
     Sistema inteligente para analizar el rendimiento de propiedades publicadas en Instagram.
   </p>
 
-  <h2>Propiedades guardadas en Supabase</h2>
+  <h2>Publicaciones de Instagram</h2>
 
   <div id="mensaje">Cargando...</div>
 
-  <div id="propiedades"></div>
+  <div id="publicaciones" class="grid"></div>
 
   <script>
-    async function cargarPropiedades() {
+    async function cargarPublicaciones() {
       const mensaje = document.getElementById("mensaje");
-      const contenedor = document.getElementById("propiedades");
+      const contenedor = document.getElementById("publicaciones");
 
       try {
-        const respuesta = await fetch("/api/propiedades");
+        const respuesta = await fetch("/api/publicaciones");
         const resultado = await respuesta.json();
 
         if (!respuesta.ok) {
-          throw new Error(resultado.error || "No se pudieron cargar las propiedades.");
+          throw new Error(resultado.error || "No se pudieron cargar las publicaciones.");
         }
 
         if (resultado.data.length === 0) {
-          mensaje.textContent = "Todavía no hay propiedades guardadas.";
+          mensaje.textContent = "Todavía no hay publicaciones guardadas.";
           return;
         }
 
         mensaje.textContent = "";
-        resultado.data.forEach((propiedad) => {
+
+        resultado.data.forEach((publicacion) => {
           const tarjeta = document.createElement("div");
-          tarjeta.className = "propiedad";
+          tarjeta.className = "publicacion";
 
-          const nombre = document.createElement("h3");
-          nombre.textContent = propiedad.nombre || "Propiedad sin nombre";
+          const titulo = document.createElement("h3");
+          titulo.textContent = publicacion.titulo || "Publicación sin título";
 
-          const estado = document.createElement("p");
-          estado.className = "estado";
-          estado.textContent = `Estado: ${propiedad.estado || "Sin estado"}`;
+          const fecha = document.createElement("p");
+          fecha.className = "fecha";
+          const fechaPub = publicacion.fecha_publicacion
+            ? new Date(publicacion.fecha_publicacion).toLocaleDateString("es-UY")
+            : "Sin fecha";
+          fecha.textContent = `Publicado el ${fechaPub}`;
 
-          tarjeta.append(nombre, estado);
+          const metricas = document.createElement("div");
+          metricas.className = "metricas";
+
+          const datos = [
+            { etiqueta: "Alcance", valor: publicacion.alcance },
+            { etiqueta: "Interacciones", valor: publicacion.interacciones },
+            { etiqueta: "Guardados", valor: publicacion.guardados },
+            { etiqueta: "Compartidos", valor: publicacion.compartidos },
+          ];
+
+          datos.forEach(({ etiqueta, valor }) => {
+            const pill = document.createElement("span");
+            pill.className = "metrica";
+            pill.innerHTML = `<strong>${valor ?? 0}</strong> ${etiqueta}`;
+            metricas.appendChild(pill);
+          });
+
+          tarjeta.append(titulo, fecha, metricas);
           contenedor.appendChild(tarjeta);
         });
       } catch (error) {
         mensaje.className = "error";
-        mensaje.textContent = "No se pudieron cargar las propiedades. Revisa la configuración de Supabase.";
-        console.error("Error cargando propiedades:", error);
+        mensaje.textContent = "No se pudieron cargar las publicaciones. Revisa la configuración de Supabase.";
+        console.error("Error cargando publicaciones:", error);
       }
     }
 
-    cargarPropiedades();
+    cargarPublicaciones();
   </script>
 
 </body>
