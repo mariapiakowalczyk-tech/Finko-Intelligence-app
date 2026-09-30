@@ -1,108 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Finko Intelligence</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #faf9f6;
-      color: #1c1f1a;
-      padding: 60px;
-    }
-
-    h1 {
-      font-size: 48px;
-      margin-bottom: 10px;
-    }
-
-    .subtitulo {
-      font-size: 20px;
-      margin-bottom: 40px;
-    }
-
-    .propiedad {
-      margin-top: 20px;
-      padding: 20px;
-      border: 1px solid #dedad2;
-      border-radius: 10px;
-      max-width: 500px;
-      background: white;
-    }
-
-    .estado {
-      color: #555;
-    }
-
-    .error {
-      color: #a12622;
-    }
-
-    #mensaje {
-      margin-top: 20px;
-    }
-  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
 </head>
-
 <body>
+  <div class="landing-hero">
+    <img src="/assets/finko-logo-white.png" style="filter: invert(0); background:#192743; padding:10px 18px; border-radius:8px;" alt="Finko Real Estate" />
+    <h1>Finko Intelligence</h1>
+    <p>Sistema inteligente para analizar el rendimiento de las publicaciones de Instagram de Finko Real Estate.</p>
+  </div>
 
-  <h1>Finko Intelligence</h1>
-
-  <p class="subtitulo">
-    Sistema inteligente para analizar el rendimiento de propiedades publicadas en Instagram.
-  </p>
-
-  <h2>Propiedades guardadas en Supabase</h2>
-
-  <div id="mensaje">Cargando...</div>
-
-  <div id="propiedades"></div>
-
-  <script>
-    async function cargarPropiedades() {
-      const mensaje = document.getElementById("mensaje");
-      const contenedor = document.getElementById("propiedades");
-
-      try {
-        const respuesta = await fetch("/api/propiedades");
-        const resultado = await respuesta.json();
-
-        if (!respuesta.ok) {
-          throw new Error(resultado.error || "No se pudieron cargar las propiedades.");
-        }
-
-        if (resultado.data.length === 0) {
-          mensaje.textContent = "Todavía no hay propiedades guardadas.";
-          return;
-        }
-
-        mensaje.textContent = "";
-        resultado.data.forEach((propiedad) => {
-          const tarjeta = document.createElement("div");
-          tarjeta.className = "propiedad";
-
-          const nombre = document.createElement("h3");
-          nombre.textContent = propiedad.nombre || "Propiedad sin nombre";
-
-          const estado = document.createElement("p");
-          estado.className = "estado";
-          estado.textContent = `Estado: ${propiedad.estado || "Sin estado"}`;
-
-          tarjeta.append(nombre, estado);
-          contenedor.appendChild(tarjeta);
-        });
-      } catch (error) {
-        mensaje.className = "error";
-        mensaje.textContent = "No se pudieron cargar las propiedades. Revisa la configuración de Supabase.";
-        console.error("Error cargando propiedades:", error);
-      }
-    }
-
-    cargarPropiedades();
-  </script>
-
+  <div class="landing-cards">
+    <a class="landing-card" href="/marketing.html">
+      <div class="landing-card__eyebrow">Vista de equipo</div>
+      <h3>Marketing</h3>
+      <p>Métricas, evolución, rankings, análisis de publicaciones e insights de contenido.</p>
+    </a>
+    <a class="landing-card" href="/comercial.html">
+      <div class="landing-card__eyebrow">Vista ejecutiva</div>
+      <h3>Dirección Comercial</h3>
+      <p>Estado general, alertas, oportunidades y resumen ejecutivo en menos de 30 segundos.</p>
+    </a>
+  </div>
 </body>
 </html>
