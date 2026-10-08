@@ -7,6 +7,14 @@
 // Los umbrales usados están basados en mediana / percentiles del
 // propio período (no en números arbitrarios), y están declarados
 // como constantes acá arriba para que sean fáciles de ajustar.
+//
+// Cada alerta y cada oportunidad lleva un `codigo_situacion`: un
+// identificador estable de QUÉ detectó el sistema (no cambia
+// aunque cambien los textos). Es el mismo código que va en la
+// columna `situacion` de la tabla `criterios_comerciales` — así
+// el equipo puede definir ahí la decisión comercial real para
+// cada código, y el dashboard la va a mostrar automáticamente
+// (ver "Sistema de recomendaciones con IA — Plan de diseño").
 // ============================================================
 
 import {
@@ -41,10 +49,16 @@ export function buildAlerts(current) {
     const motivos = [];
 
     if (p25Alcance != null && r.alcance <= p25Alcance) {
-      motivos.push(`alcance (${formatInt(r.alcance)}) muy por debajo del promedio del período`);
+      motivos.push({
+        codigo: "alcance_bajo",
+        texto: `alcance (${formatInt(r.alcance)}) muy por debajo del promedio del período`,
+      });
     }
     if (medEngagement != null && r.engagement_rate != null && r.engagement_rate < medEngagement * 0.5) {
-      motivos.push(`Engagement Rate significativamente bajo (${formatPct(r.engagement_rate)})`);
+      motivos.push({
+        codigo: "engagement_muy_bajo",
+        texto: `Engagement Rate significativamente bajo (${formatPct(r.engagement_rate)})`,
+      });
     }
     if (
       p75Alcance != null &&
@@ -53,21 +67,29 @@ export function buildAlerts(current) {
       r.engagement_rate != null &&
       r.engagement_rate < medEngagement
     ) {
-      motivos.push("mucho alcance pero pocas interacciones en relación al resto");
+      motivos.push({
+        codigo: "alcance_alto_engagement_bajo",
+        texto: "mucho alcance pero pocas interacciones en relación al resto",
+      });
     }
     if (
       (r.guardados ?? 0) === 0 &&
       (r.compartidos ?? 0) === 0 &&
       ((medGuardados != null && medGuardados > 0) || (medCompartidos != null && medCompartidos > 0))
     ) {
-      motivos.push("sin guardados ni compartidos, cuando publicaciones similares sí los tienen");
+      motivos.push({
+        codigo: "sin_guardados_ni_compartidos",
+        texto: "sin guardados ni compartidos, cuando publicaciones similares sí los tienen",
+      });
     }
 
     if (motivos.length > 0) {
+      const principal = motivos[0];
       alertas.push({
         titulo: r.titulo || "Publicación sin título",
         fecha_publicacion: r.fecha_publicacion,
-        descripcion: `${motivos[0][0].toUpperCase()}${motivos[0].slice(1)}.`,
+        descripcion: `${principal.texto[0].toUpperCase()}${principal.texto.slice(1)}.`,
+        codigo_situacion: principal.codigo,
         cantidadMotivos: motivos.length,
         row: r,
       });
@@ -106,6 +128,7 @@ export function buildOpportunities(current) {
         casoEngagementAlcance.engagement_rate
       )} (top 25% del período) con un alcance de solo ${formatInt(casoEngagementAlcance.alcance)}.`,
       recomendacion: "Evaluar invertir en difusión para este contenido: el mensaje funciona, falta alcance.",
+      codigo_situacion: "engagement_alto_alcance_bajo",
     });
   }
 
@@ -116,6 +139,7 @@ export function buildOpportunities(current) {
       titulo: casoShare.titulo || "Publicación sin título",
       observado: `Share Rate de ${formatPct(casoShare.share_rate)}, el más alto del período.`,
       recomendacion: "Este formato de contenido tiene buena capacidad de difusión orgánica: considerar replicarlo.",
+      codigo_situacion: "share_rate_alto",
     });
   }
 
@@ -127,6 +151,7 @@ export function buildOpportunities(current) {
       titulo: casoGuardados.titulo || "Publicación sin título",
       observado: `${formatInt(casoGuardados.guardados)} guardados, muy por encima del resto de publicaciones.`,
       recomendacion: "Alto interés de guardado sugiere intención de consulta: dar seguimiento comercial a esta propiedad.",
+      codigo_situacion: "guardados_altos",
     });
   }
 
@@ -154,6 +179,7 @@ export function buildOpportunities(current) {
             0
           )}% superior al resto de las categorías en este período.`,
           recomendacion: `Priorizar publicaciones de ${mejorCat} muestra mayor capacidad de difusión y respuesta.`,
+          codigo_situacion: "categoria_destacada",
         });
       }
     }

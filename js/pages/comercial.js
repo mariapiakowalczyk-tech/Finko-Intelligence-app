@@ -6,6 +6,7 @@
 
 import { mountNav } from "../components/nav.js";
 import { fetchPublicaciones } from "../data.js";
+import { fetchCriterios, buildCriteriosPorSituacion } from "../criteria.js";
 import { prepareDataset, splitByPeriod, buildKpi, formatInt, percentile } from "../metrics.js";
 import { renderKpiGrid } from "../components/kpiCard.js";
 import { renderDateFilter } from "../components/dateFilter.js";
@@ -19,12 +20,14 @@ mountNav("comercial");
 const root = document.getElementById("app");
 let dataset = [];
 let period = "30";
+let criteriosPorCodigo = new Map();
 
 async function init() {
   root.innerHTML = '<div class="loading-state">Cargando publicaciones…</div>';
   try {
-    const raw = await fetchPublicaciones();
+    const [raw, criterios] = await Promise.all([fetchPublicaciones(), fetchCriterios()]);
     dataset = prepareDataset(raw);
+    criteriosPorCodigo = buildCriteriosPorSituacion(criterios);
     render();
   } catch (err) {
     root.innerHTML = `<div class="empty-state">No se pudieron cargar las publicaciones. ${err.message || ""}</div>`;
@@ -125,11 +128,11 @@ async function renderBody() {
 
   const attentionCol = document.createElement("div");
   attentionCol.innerHTML = `<div class="section__head"><h2>Requieren atención</h2></div>`;
-  attentionCol.appendChild(renderAlertList(alerts));
+  attentionCol.appendChild(renderAlertList(alerts, criteriosPorCodigo));
 
   const opportunityCol = document.createElement("div");
   opportunityCol.innerHTML = `<div class="section__head"><h2>Oportunidades detectadas</h2></div>`;
-  opportunityCol.appendChild(renderOpportunityList(opportunities));
+  opportunityCol.appendChild(renderOpportunityList(opportunities, criteriosPorCodigo));
 
   twoColSection.append(attentionCol, opportunityCol);
   body.appendChild(twoColSection);
