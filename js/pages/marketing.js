@@ -9,11 +9,14 @@ import {
   prepareDataset,
   splitByPeriod,
   buildKpi,
+  buildGoalKpi,
   formatInt,
   formatPct,
   average,
+  sum,
   pctChange,
 } from "../metrics.js";
+import { scaleTargets } from "../targets.js";
 import { renderKpiGrid } from "../components/kpiCard.js";
 import { renderDateFilter } from "../components/dateFilter.js";
 import { renderRankingCard } from "../components/rankingCard.js";
@@ -47,8 +50,7 @@ function render() {
   header.className = "page-header";
   header.innerHTML = `
     <div>
-      <h1>Marketing</h1>
-      <p>Rendimiento de las publicaciones de Instagram: qué contenido funciona, qué patrones se repiten y dónde hay oportunidad.</p>
+      <h1>Rendimiento de las Publicaciones</h1>
     </div>
   `;
   const filterEl = renderDateFilter(period);
@@ -76,18 +78,65 @@ function renderBody() {
     return;
   }
 
-  const { current, previous } = splitByPeriod(dataset, period);
+  const { current, previous, range } = splitByPeriod(dataset, period);
 
   if (current.length === 0) {
     body.innerHTML = '<div class="empty-state">No hay publicaciones en el período seleccionado.</div>';
     return;
   }
 
+  // ---- Objetivos ----
+  const days = Math.round((range.end.getTime() - range.start.getTime()) / 86400000) + 1;
+  const targets = scaleTargets(days);
+
+  const goalsSection = document.createElement("div");
+  goalsSection.className = "section";
+  goalsSection.innerHTML = `<div class="section__head"><h2>Objetivos</h2></div>`;
+  goalsSection.appendChild(
+    renderKpiGrid(
+      [
+        buildGoalKpi({
+          label: "Alcance esperado",
+          real: sum(current, "alcance"),
+          target: targets.alcance,
+          formatter: formatInt,
+        }),
+        buildGoalKpi({
+          label: "Interacciones totales esperadas",
+          real: sum(current, "interacciones"),
+          target: targets.interacciones,
+          formatter: formatInt,
+        }),
+        buildGoalKpi({
+          label: "Engagement Rate esperado",
+          real: average(current, "engagement_rate"),
+          target: targets.engagement_rate,
+          formatter: formatPct,
+        }),
+        buildGoalKpi({
+          label: "Guardados esperados",
+          real: sum(current, "guardados"),
+          target: targets.guardados,
+          formatter: formatInt,
+        }),
+        buildGoalKpi({
+          label: "Compartidos esperados",
+          real: sum(current, "compartidos"),
+          target: targets.compartidos,
+          formatter: formatInt,
+        }),
+      ],
+      { compact: true }
+    )
+  );
+  body.appendChild(goalsSection);
+
   // ---- KPIs ----
   const kpiSection = document.createElement("div");
   kpiSection.className = "section";
   kpiSection.appendChild(
     renderKpiGrid([
+      buildKpi({ label: "Publicaciones analizadas", current, previous, key: "count", formatter: formatInt }),
       buildKpi({ label: "Alcance total", current, previous, key: "alcance", formatter: formatInt }),
       buildKpi({ label: "Interacciones totales", current, previous, key: "interacciones", formatter: formatInt }),
       {
@@ -96,7 +145,6 @@ function renderBody() {
       },
       buildKpi({ label: "Guardados", current, previous, key: "guardados", formatter: formatInt }),
       buildKpi({ label: "Compartidos", current, previous, key: "compartidos", formatter: formatInt }),
-      buildKpi({ label: "Publicaciones", current, previous, key: "count", formatter: formatInt }),
     ])
   );
   body.appendChild(kpiSection);

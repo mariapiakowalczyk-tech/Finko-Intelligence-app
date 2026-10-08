@@ -40,7 +40,6 @@ function render() {
   header.innerHTML = `
     <div>
       <h1>Dirección Comercial</h1>
-      <p>Cómo está rindiendo Instagram, qué se destaca y qué necesita atención — de un vistazo.</p>
     </div>
   `;
   const filterEl = renderDateFilter(period);

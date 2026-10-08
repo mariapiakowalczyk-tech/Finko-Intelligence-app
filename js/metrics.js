@@ -179,6 +179,26 @@ export function buildKpi({ label, current, previous, key, formatter, higherIsBet
 
 // ---------------- Formatters ----------------
 
+/**
+ * Arma los datos de una KPI card que compara un valor real contra
+ * un objetivo (en vez de contra el período anterior).
+ */
+export function buildGoalKpi({ label, real, target, formatter, higherIsBetter = true }) {
+  const delta = pctChange(real, target);
+  let direction = "flat";
+  if (delta != null && Math.abs(delta) >= 0.5) {
+    const subiendo = delta > 0;
+    direction = subiendo === higherIsBetter ? "up" : "down";
+  }
+  return {
+    label,
+    value: formatter ? formatter(real) : real,
+    target: formatter ? formatter(target) : target,
+    delta,
+    direction,
+  };
+}
+
 export function formatInt(n) {
   if (n == null || !Number.isFinite(n)) return "—";
   return Math.round(n).toLocaleString("es-UY");

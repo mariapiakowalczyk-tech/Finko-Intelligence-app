@@ -1,11 +1,11 @@
 // ============================================================
 // kpiCard.js
 // Tarjeta de KPI reutilizable: label + valor + variación vs.
-// período anterior (opcional).
+// período anterior (opcional), o vs. un objetivo (opcional).
 // ============================================================
 
 /**
- * @param {{label:string, value:string|number, delta?:number|null, direction?:"up"|"down"|"flat", big?:boolean}} kpi
+ * @param {{label:string, value:string|number, delta?:number|null, direction?:"up"|"down"|"flat", big?:boolean, target?:string|number}} kpi
  */
 export function renderKpiCard(kpi) {
   const el = document.createElement("div");
@@ -18,9 +18,12 @@ export function renderKpiCard(kpi) {
           kpi.direction === "up" ? "▲" : kpi.direction === "down" ? "▼" : "→"
         } ${Math.abs(kpi.delta).toFixed(1)}%</span>`;
 
+  const targetHtml = kpi.target == null ? "" : `<span class="kpi-card__target">Meta: ${kpi.target}</span>`;
+
   el.innerHTML = `
     <span class="kpi-card__label">${kpi.label}</span>
     <span class="kpi-card__value">${kpi.value}</span>
+    ${targetHtml}
     ${deltaHtml}
   `;
   return el;
