@@ -84,16 +84,26 @@ function renderBody() {
   }
 
   // ---- KPIs (variación vs. período anterior + objetivo del equipo) ----
-  const days = Math.round((range.end.getTime() - range.start.getTime()) / 86400000) + 1;
+  const days = Math.round((range.end.getTime() - range.start.getTime()) / 86400000);
   const targets = scaleTargets(days);
 
   // Agrega el objetivo ("Alcance esperado: 8.267") como dato informativo,
   // sin tocar el delta del KPI (que sigue siendo vs. el período anterior).
-  const withTarget = (kpi, targetValue, metaLabel, formatter) => ({
-    ...kpi,
-    target: formatter ? formatter(targetValue) : targetValue,
-    metaLabel,
-  });
+  const withTarget = (kpi, targetValue, metaLabel, formatter, higherIsBetter = true) => {
+    const cumplido =
+      kpi.rawValue == null || targetValue == null
+        ? null
+        : higherIsBetter
+        ? kpi.rawValue >= targetValue
+        : kpi.rawValue <= targetValue;
+    return {
+      ...kpi,
+      target: formatter ? formatter(targetValue) : targetValue,
+      metaLabel,
+      // "met" (verde) si el valor real ya alcanzó el objetivo, "below" (rojo) si no.
+      targetState: cumplido == null ? null : cumplido ? "met" : "below",
+    };
+  };
 
   const kpiSection = document.createElement("div");
   kpiSection.className = "section";

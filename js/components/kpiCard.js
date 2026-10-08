@@ -5,7 +5,7 @@
 // ============================================================
 
 /**
- * @param {{label:string, value:string|number, delta?:number|null, direction?:"up"|"down"|"flat", big?:boolean, target?:string|number, metaLabel?:string}} kpi
+ * @param {{label:string, value:string|number, delta?:number|null, direction?:"up"|"down"|"flat", big?:boolean, target?:string|number, metaLabel?:string, targetState?:"met"|"below"|null}} kpi
  */
 export function renderKpiCard(kpi) {
   const el = document.createElement("div");
@@ -18,8 +18,11 @@ export function renderKpiCard(kpi) {
           kpi.direction === "up" ? "▲" : kpi.direction === "down" ? "▼" : "→"
         } ${Math.abs(kpi.delta).toFixed(1)}%</span>`;
 
+  const targetStateClass = kpi.targetState ? ` is-${kpi.targetState}` : "";
   const targetHtml =
-    kpi.target == null ? "" : `<span class="kpi-card__target">${kpi.metaLabel || "Meta"}: ${kpi.target}</span>`;
+    kpi.target == null
+      ? ""
+      : `<span class="kpi-card__target${targetStateClass}">${kpi.metaLabel || "Meta"}: ${kpi.target}</span>`;
 
   el.innerHTML = `
     <span class="kpi-card__label">${kpi.label}</span>

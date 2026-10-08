@@ -9,11 +9,11 @@
 
 /** Objetivos pensados sobre una base de 30 días. */
 export const MONTHLY_TARGETS = {
-  alcance: 8000,
-  interacciones: 300,
-  engagement_rate: 0.04, // 4%
-  guardados: 15,
-  compartidos: 80,
+  alcance: 5500,
+  interacciones: 180,
+  engagement_rate: 0.03, // 3%
+  guardados: 10,
+  compartidos: 50,
 };
 
 /**
