@@ -44,7 +44,10 @@ create index if not exists idx_criterios_situacion_activo
 -- ---------------------------------------------------------------
 create table if not exists campanas_historicas (
   id uuid primary key default gen_random_uuid(),
-  post_id text references publicaciones_instagram(post_id) on delete set null,
+  -- Sin FK a publicaciones_instagram: esa tabla no tiene post_id
+  -- declarado como PRIMARY KEY/UNIQUE en Postgres, así que no se puede
+  -- referenciar formalmente. El join sigue funcionando por valor.
+  post_id text,
   categoria text,
   monto_invertido numeric(12, 2),
   fecha_inicio date,
@@ -71,7 +74,7 @@ create table if not exists recomendaciones_generadas (
   tipo text not null check (tipo in ('alerta', 'oportunidad', 'inversion')),
   origen text not null check (origen in ('determinista', 'ia')),
   criterio_id uuid references criterios_comerciales(id) on delete set null,
-  post_id text references publicaciones_instagram(post_id) on delete set null,
+  post_id text, -- ver nota en campanas_historicas: sin FK formal
   texto_recomendacion text not null,
   datos_que_la_respaldan jsonb,
   estado text not null default 'pendiente' check (estado in ('pendiente', 'aceptada', 'rechazada'))

@@ -9,12 +9,10 @@ import {
   prepareDataset,
   splitByPeriod,
   buildKpi,
-  buildGoalKpi,
+  buildAverageKpi,
   formatInt,
   formatPct,
-  average,
   sum,
-  pctChange,
 } from "../metrics.js";
 import { scaleTargets } from "../targets.js";
 import { renderKpiGrid } from "../components/kpiCard.js";
@@ -85,66 +83,53 @@ function renderBody() {
     return;
   }
 
-  // ---- Objetivos ----
+  // ---- KPIs (variación vs. período anterior + objetivo del equipo) ----
   const days = Math.round((range.end.getTime() - range.start.getTime()) / 86400000) + 1;
   const targets = scaleTargets(days);
 
-  const goalsSection = document.createElement("div");
-  goalsSection.className = "section";
-  goalsSection.innerHTML = `<div class="section__head"><h2>Objetivos</h2></div>`;
-  goalsSection.appendChild(
-    renderKpiGrid(
-      [
-        buildGoalKpi({
-          label: "Alcance esperado",
-          real: sum(current, "alcance"),
-          target: targets.alcance,
-          formatter: formatInt,
-        }),
-        buildGoalKpi({
-          label: "Interacciones totales esperadas",
-          real: sum(current, "interacciones"),
-          target: targets.interacciones,
-          formatter: formatInt,
-        }),
-        buildGoalKpi({
-          label: "Engagement Rate esperado",
-          real: average(current, "engagement_rate"),
-          target: targets.engagement_rate,
-          formatter: formatPct,
-        }),
-        buildGoalKpi({
-          label: "Guardados esperados",
-          real: sum(current, "guardados"),
-          target: targets.guardados,
-          formatter: formatInt,
-        }),
-        buildGoalKpi({
-          label: "Compartidos esperados",
-          real: sum(current, "compartidos"),
-          target: targets.compartidos,
-          formatter: formatInt,
-        }),
-      ],
-      { compact: true }
-    )
-  );
-  body.appendChild(goalsSection);
+  // Agrega el objetivo ("Alcance esperado: 8.267") como dato informativo,
+  // sin tocar el delta del KPI (que sigue siendo vs. el período anterior).
+  const withTarget = (kpi, targetValue, metaLabel, formatter) => ({
+    ...kpi,
+    target: formatter ? formatter(targetValue) : targetValue,
+    metaLabel,
+  });
 
-  // ---- KPIs ----
   const kpiSection = document.createElement("div");
   kpiSection.className = "section";
   kpiSection.appendChild(
     renderKpiGrid([
       buildKpi({ label: "Publicaciones analizadas", current, previous, key: "count", formatter: formatInt }),
-      buildKpi({ label: "Alcance total", current, previous, key: "alcance", formatter: formatInt }),
-      buildKpi({ label: "Interacciones totales", current, previous, key: "interacciones", formatter: formatInt }),
-      {
-        label: "Engagement Rate",
-        ...deltaFromAverage(current, previous, "engagement_rate"),
-      },
-      buildKpi({ label: "Guardados", current, previous, key: "guardados", formatter: formatInt }),
-      buildKpi({ label: "Compartidos", current, previous, key: "compartidos", formatter: formatInt }),
+      withTarget(
+        buildKpi({ label: "Alcance total", current, previous, key: "alcance", formatter: formatInt }),
+        targets.alcance,
+        "Alcance esperado",
+        formatInt
+      ),
+      withTarget(
+        buildKpi({ label: "Interacciones totales", current, previous, key: "interacciones", formatter: formatInt }),
+        targets.interacciones,
+        "Interacciones totales esperadas",
+        formatInt
+      ),
+      withTarget(
+        buildAverageKpi({ label: "Engagement Rate", current, previous, key: "engagement_rate", formatter: formatPct }),
+        targets.engagement_rate,
+        "Engagement Rate esperado",
+        formatPct
+      ),
+      withTarget(
+        buildKpi({ label: "Guardados", current, previous, key: "guardados", formatter: formatInt }),
+        targets.guardados,
+        "Guardados esperados",
+        formatInt
+      ),
+      withTarget(
+        buildKpi({ label: "Compartidos", current, previous, key: "compartidos", formatter: formatInt }),
+        targets.compartidos,
+        "Compartidos esperados",
+        formatInt
+      ),
     ])
   );
   body.appendChild(kpiSection);
@@ -188,13 +173,5 @@ function renderBody() {
   body.appendChild(tableSection);
 }
 
-function deltaFromAverage(current, previous, key) {
-  const actual = average(current, key);
-  const anterior = average(previous, key);
-  const delta = pctChange(actual, anterior);
-  let direction = "flat";
-  if (delta != null && Math.abs(delta) >= 0.5) direction = delta > 0 ? "up" : "down";
-  return { value: formatPct(actual), delta, direction };
-}
 
 init();

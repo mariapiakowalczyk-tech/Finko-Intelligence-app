@@ -183,7 +183,31 @@ export function buildKpi({ label, current, previous, key, formatter, higherIsBet
  * Arma los datos de una KPI card que compara un valor real contra
  * un objetivo (en vez de contra el período anterior).
  */
-export function buildGoalKpi({ label, real, target, formatter, higherIsBetter = true }) {
+/**
+ * Igual que buildKpi, pero para métricas que son un promedio/ratio
+ * (ej. engagement_rate) en vez de una cantidad que se suma.
+ */
+export function buildAverageKpi({ label, current, previous, key, formatter, higherIsBetter = true }) {
+  const valorActual = average(current, key);
+  const valorAnterior = average(previous, key);
+  const delta = pctChange(valorActual, valorAnterior);
+
+  let direction = "flat";
+  if (delta != null && Math.abs(delta) >= 0.5) {
+    const subiendo = delta > 0;
+    direction = subiendo === higherIsBetter ? "up" : "down";
+  }
+
+  return {
+    label,
+    value: formatter ? formatter(valorActual) : valorActual,
+    rawValue: valorActual,
+    delta,
+    direction,
+  };
+}
+
+export function buildGoalKpi({ label, metaLabel, real, target, formatter, higherIsBetter = true }) {
   const delta = pctChange(real, target);
   let direction = "flat";
   if (delta != null && Math.abs(delta) >= 0.5) {
@@ -194,6 +218,9 @@ export function buildGoalKpi({ label, real, target, formatter, higherIsBetter = 
     label,
     value: formatter ? formatter(real) : real,
     target: formatter ? formatter(target) : target,
+    // Texto para la línea chica junto al objetivo (ej. "Alcance esperado").
+    // Si no se pasa, se usa el propio label.
+    metaLabel: metaLabel || label,
     delta,
     direction,
   };
