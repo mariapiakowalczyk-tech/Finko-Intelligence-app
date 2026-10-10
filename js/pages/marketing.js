@@ -4,6 +4,7 @@
 // ============================================================
 
 import { mountNav } from "../components/nav.js";
+import { requireRole } from "../auth.js";
 import { fetchPublicaciones } from "../data.js";
 import {
   prepareDataset,
@@ -23,11 +24,16 @@ import { renderPostTable } from "../components/postTable.js";
 import { renderInsightList } from "../components/insightCard.js";
 import { buildContentInsights } from "../insights.js";
 
-mountNav("marketing");
-
 const root = document.getElementById("app");
 let dataset = [];
 let period = "30";
+
+async function boot() {
+  const auth = await requireRole("marketing");
+  if (!auth) return; // requireRole ya está redirigiendo
+  mountNav("marketing", auth);
+  await init();
+}
 
 async function init() {
   root.innerHTML = '<div class="loading-state">Cargando publicaciones…</div>';
@@ -184,4 +190,4 @@ function renderBody() {
 }
 
 
-init();
+boot();

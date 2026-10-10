@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finko Intelligence — Iniciar sesión</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+<body>
+  <div class="login-screen">
+    <form id="login-form" class="login-card" autocomplete="on">
+      <img
+        class="login-card__logo"
+        src="/assets/finko-logo-white.png"
+        alt="Finko Real Estate"
+      />
+      <h1>Iniciar sesión</h1>
+      <p class="login-card__hint">Entrá con el usuario que te dieron para Marketing o Dirección Comercial.</p>
+
+      <label class="login-card__field">
+        Email
+        <input type="email" id="email" name="email" required autocomplete="username" />
+      </label>
+
+      <label class="login-card__field">
+        Contraseña
+        <input type="password" id="password" name="password" required autocomplete="current-password" />
+      </label>
+
+      <button type="submit" class="login-card__submit">Entrar</button>
+
+      <div id="login-error" class="login-card__error" hidden></div>
+    </form>
+  </div>
+
+  <script type="module" src="/js/pages/login.js"></script>
+</body>
+</html>

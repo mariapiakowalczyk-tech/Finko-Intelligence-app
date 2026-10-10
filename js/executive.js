@@ -25,6 +25,7 @@ import {
   extractCategoria,
   formatPct,
   formatInt,
+  sum,
 } from "./metrics.js";
 
 // Umbrales (documentados, ajustables)
@@ -257,18 +258,57 @@ export function computeStatus(current, previous, alerts) {
 // ---------------- Resumen ejecutivo ----------------
 
 /**
- * Punto de integración para un modelo de IA a futuro.
- * Hoy devuelve null (no hay integración configurada); cuando se
- * conecte un modelo, esta función debe devolver el texto generado
- * y `generateExecutiveSummary` lo va a usar en lugar de la versión
- * basada en reglas.
+ * Llama a /api/resumen-ejecutivo (que a su vez llama a Claude) con
+ * un resumen compacto de los datos YA calculados del período — no
+ * le mandamos las publicaciones crudas, para que el modelo no tenga
+ * que recalcular nada y la respuesta sea más confiable y barata.
+ *
+ * Si la IA no está configurada (falta la API key), si la llamada
+ * falla o tarda, devuelve null y `generateExecutiveSummary` usa el
+ * resumen por reglas de abajo como respaldo automático: el usuario
+ * nunca se queda sin resumen.
  */
-async function generateExecutiveSummaryWithAI(/* payload */) {
-  // TODO: conectar acá un modelo de IA (ej. llamar a un endpoint propio
-  // tipo /api/resumen-ejecutivo que a su vez llame a un LLM con estos
-  // mismos datos ya calculados). Mientras no exista esa integración,
-  // se devuelve null y se usa el resumen determinístico de abajo.
-  return null;
+async function generateExecutiveSummaryWithAI({ current, previous, alerts, opportunities }) {
+  if (!current || current.length === 0) return null;
+
+  const totalAlcance = sum(current, "alcance");
+  const totalAlcancePrev = sum(previous, "alcance");
+  const topAlcance = [...current].sort((a, b) => b.alcance - a.alcance)[0];
+  const topShare = [...current].filter((r) => r.share_rate != null).sort((a, b) => b.share_rate - a.share_rate)[0];
+
+  const payload = {
+    periodo: {
+      publicaciones: current.length,
+      alcanceTotal: totalAlcance,
+      alcanceAnterior: totalAlcancePrev,
+      diffAlcance: pctChange(totalAlcance, totalAlcancePrev),
+      interaccionesTotal: sum(current, "interacciones"),
+      engagementPromedio: average(current, "engagement_rate"),
+      engagementAnterior: average(previous, "engagement_rate"),
+    },
+    topAlcance: topAlcance ? { titulo: topAlcance.titulo, alcance: topAlcance.alcance } : null,
+    topShare: topShare ? { titulo: topShare.titulo, share_rate: topShare.share_rate } : null,
+    alertas: alerts.map((a) => ({ titulo: a.titulo, descripcion: a.descripcion, codigo: a.codigo_situacion })),
+    oportunidades: opportunities.map((o) => ({
+      titulo: o.titulo,
+      observado: o.observado,
+      recomendacion: o.recomendacion,
+      codigo: o.codigo_situacion,
+    })),
+  };
+
+  try {
+    const respuesta = await fetch("/api/resumen-ejecutivo", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!respuesta.ok) return null;
+    const body = await respuesta.json();
+    return body.texto || null;
+  } catch (error) {
+    return null;
+  }
 }
 
 /**
@@ -279,7 +319,17 @@ async function generateExecutiveSummaryWithAI(/* payload */) {
  */
 export async function generateExecutiveSummary({ current, previous, alerts, opportunities }) {
   const iaTexto = await generateExecutiveSummaryWithAI({ current, previous, alerts, opportunities });
-  if (iaTexto) return { texto: iaTexto, generadoPorIA: true, highlights: [] };
+  if (iaTexto) {
+    return {
+      texto: iaTexto,
+      generadoPorIA: true,
+      highlights: [
+        { label: "Alcance total", value: formatInt(sum(current, "alcance")) },
+        { label: "Publicaciones en alerta", value: String(alerts.length) },
+        { label: "Oportunidades detectadas", value: String(opportunities.length) },
+      ],
+    };
+  }
 
   if (!current || current.length === 0) {
     return {

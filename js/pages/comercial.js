@@ -5,6 +5,7 @@
 // ============================================================
 
 import { mountNav } from "../components/nav.js";
+import { requireRole } from "../auth.js";
 import { fetchPublicaciones } from "../data.js";
 import { fetchCriterios, buildCriteriosPorSituacion } from "../criteria.js";
 import { prepareDataset, splitByPeriod, buildKpi, formatInt, percentile } from "../metrics.js";
@@ -15,12 +16,17 @@ import { renderAlertList, renderOpportunityList } from "../components/alertCard.
 import { renderExecSummary } from "../components/execSummary.js";
 import { buildAlerts, buildOpportunities, computeStatus, generateExecutiveSummary } from "../executive.js";
 
-mountNav("comercial");
-
 const root = document.getElementById("app");
 let dataset = [];
 let period = "30";
 let criteriosPorCodigo = new Map();
+
+async function boot() {
+  const auth = await requireRole("direccion_comercial");
+  if (!auth) return; // requireRole ya está redirigiendo
+  mountNav("comercial", auth);
+  await init();
+}
 
 async function init() {
   root.innerHTML = '<div class="loading-state">Cargando publicaciones…</div>';
@@ -189,4 +195,4 @@ function renderLoadingSummary() {
   return el;
 }
 
-init();
+boot();
