@@ -591,51 +591,139 @@ a {
   border-radius: var(--radius-md);
 }
 
-/* ---------- Executive summary ---------- */
+/* ---------- Executive summary (hero) ---------- */
+/* Es lo primero que lee Dirección Comercial: el color y el tamaño
+   acompañan el estado general (positivo / atención / revisión), así
+   no hace falta leer el texto para captar la urgencia. */
 
-.exec-summary {
-  background: linear-gradient(180deg, #fff 0%, #fafbfd 100%);
+.exec-hero {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--finko-navy);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 26px 28px;
 }
 
-.exec-summary__badge {
-  display: inline-block;
+.exec-hero__icon {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 800;
+  background: var(--accent-soft);
+  color: var(--finko-navy);
+}
+
+.exec-hero__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.exec-hero__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.exec-hero__eyebrow {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+.exec-hero__estado {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.exec-hero__badge {
+  flex-shrink: 0;
   font-size: 10.5px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--finko-navy);
   background: var(--accent-soft);
-  padding: 3px 9px;
+  padding: 4px 10px;
   border-radius: 999px;
-  margin-bottom: 12px;
+  white-space: nowrap;
+  margin-top: 2px;
 }
 
-.exec-summary__text {
-  font-size: 14.5px;
-  line-height: 1.7;
+.exec-hero__text {
+  font-size: 16px;
+  line-height: 1.65;
   color: var(--text-primary);
-  margin: 0 0 14px;
+  margin: 0 0 20px;
+  max-width: 840px;
 }
 
-.exec-summary__highlights {
+.exec-hero__stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
 }
 
-.exec-summary__highlight {
-  font-size: 12.5px;
-  color: var(--text-secondary);
-  background: var(--accent-soft);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
+.exec-hero__stat {
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  padding: 13px 15px;
 }
 
-.exec-summary__highlight strong {
+.exec-hero__stat-value {
+  font-size: 19px;
+  font-weight: 800;
   color: var(--text-primary);
-  display: block;
-  font-size: 13.5px;
-  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.exec-hero__stat-label {
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-top: 3px;
+}
+
+.exec-hero.is-positivo { border-left-color: var(--positive); }
+.exec-hero.is-positivo .exec-hero__icon { background: var(--positive-bg); color: var(--positive); }
+.exec-hero.is-positivo .exec-hero__estado { color: var(--positive); }
+.exec-hero.is-positivo .exec-hero__stat { background: var(--positive-bg); }
+.exec-hero.is-positivo .exec-hero__stat-value { color: var(--positive); }
+
+.exec-hero.is-atencion { border-left-color: var(--warning); }
+.exec-hero.is-atencion .exec-hero__icon { background: var(--warning-bg); color: var(--warning); }
+.exec-hero.is-atencion .exec-hero__estado { color: var(--warning); }
+.exec-hero.is-atencion .exec-hero__stat { background: var(--warning-bg); }
+.exec-hero.is-atencion .exec-hero__stat-value { color: var(--warning); }
+
+.exec-hero.is-revision { border-left-color: var(--danger); }
+.exec-hero.is-revision .exec-hero__icon { background: var(--danger-bg); color: var(--danger); }
+.exec-hero.is-revision .exec-hero__estado { color: var(--danger); }
+.exec-hero.is-revision .exec-hero__stat { background: var(--danger-bg); }
+.exec-hero.is-revision .exec-hero__stat-value { color: var(--danger); }
+
+@media (max-width: 640px) {
+  .exec-hero {
+    flex-direction: column;
+  }
 }
 
 /* ---------- Table ---------- */

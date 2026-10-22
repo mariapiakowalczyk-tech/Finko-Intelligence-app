@@ -92,6 +92,14 @@ async function renderBody() {
     (r) => p75Engagement != null && r.engagement_rate != null && r.engagement_rate >= p75Engagement
   ).length;
 
+  // ---- Resumen ejecutivo (primero: es lo que el director lee de
+  // entrada; el color y el ícono ya comunican el estado general sin
+  // necesidad de leer el texto) ----
+  const summarySection = document.createElement("div");
+  summarySection.className = "section";
+  summarySection.appendChild(renderLoadingSummary());
+  body.appendChild(summarySection);
+
   // ---- KPIs ----
   const kpiSection = document.createElement("div");
   kpiSection.className = "section";
@@ -111,22 +119,6 @@ async function renderBody() {
     )
   );
   body.appendChild(kpiSection);
-
-  // ---- Estado de performance ----
-  const statusSection = document.createElement("div");
-  statusSection.className = "section";
-  statusSection.innerHTML = `<div class="section__head"><h2>Estado de performance</h2></div>`;
-  const banner = document.createElement("div");
-  banner.className = `status-banner is-${status.nivel}`;
-  banner.innerHTML = `
-    <span class="status-banner__dot"></span>
-    <div>
-      <div class="status-banner__title">${status.titulo}</div>
-      <div class="status-banner__desc">${status.descripcion}</div>
-    </div>
-  `;
-  statusSection.appendChild(banner);
-  body.appendChild(statusSection);
 
   // ---- Requieren atención / Oportunidades ----
   const twoColSection = document.createElement("div");
@@ -176,16 +168,12 @@ async function renderBody() {
   rankSection.appendChild(rankGrid);
   body.appendChild(rankSection);
 
-  // ---- Resumen ejecutivo ----
-  const summarySection = document.createElement("div");
-  summarySection.className = "section";
-  summarySection.innerHTML = `<div class="section__head"><h2>Resumen ejecutivo</h2></div>`;
-  summarySection.appendChild(renderLoadingSummary());
-  body.appendChild(summarySection);
-
+  // Resolver el resumen ejecutivo (puede tardar si llama a la IA) y
+  // reemplazar el placeholder en su lugar, sin mover el resto de la
+  // página — el nodo ya está arriba de todo desde que se creó.
   const summary = await generateExecutiveSummary({ current, previous, alerts, opportunities });
-  summarySection.removeChild(summarySection.lastChild);
-  summarySection.appendChild(renderExecSummary(summary));
+  summarySection.innerHTML = "";
+  summarySection.appendChild(renderExecSummary(summary, status));
 }
 
 function renderLoadingSummary() {
