@@ -33,6 +33,15 @@ create policy "Cada usuario lee su propio perfil"
   for select
   using (auth.uid() = user_id);
 
+-- A partir del 30/10/2026 Supabase dejó de otorgar automáticamente
+-- acceso a la API (PostgREST) a las tablas nuevas de "public": hay
+-- que concederlo a mano en el mismo script que crea la tabla. Esto
+-- es lo que ya tuvimos que correr manualmente para destrabar el
+-- login (error 403 al leer perfiles) — queda documentado acá para
+-- que, si este script se corre de cero en otro proyecto, no haga
+-- falta repetir el diagnóstico.
+grant select on public.perfiles to authenticated;
+
 -- ---------------------------------------------------------------
 -- Ejemplo: después de crear los usuarios en Authentication > Users,
 -- completar con sus UUID reales y correr este INSERT.

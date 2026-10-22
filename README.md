@@ -25,3 +25,17 @@ Marketing y Dirección Comercial inician sesión con un usuario y contraseña (S
    ```
 
 Ver `sql/002_perfiles.sql` para el detalle del esquema.
+
+## Creando tablas nuevas
+
+Desde el 30/10/2026 Supabase ya no otorga automáticamente acceso vía API
+a las tablas nuevas de "public" — hay que agregarlo a mano en el mismo
+script SQL que crea la tabla (ver el ejemplo en `sql/002_perfiles.sql`):
+
+```sql
+grant select on public.mi_tabla_nueva to authenticated;
+-- agregar insert/update/delete y/o "to anon" solo si la tabla
+-- realmente necesita ese acceso.
+```
+
+Las tablas que ya existían antes de esa fecha no se ven afectadas.
